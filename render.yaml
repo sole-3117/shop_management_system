@@ -1,0 +1,58 @@
+services:
+  # Backend API
+  - type: web
+    name: shop-api
+    env: node
+    rootDir: apps/api
+    buildCommand: npm install
+    startCommand: node src/app.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: shop-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        sync: false
+
+  # Frontend
+  - type: web
+    name: shop-web
+    env: static
+    rootDir: apps/web
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+  # Telegram Bot
+  - type: worker
+    name: shop-bot
+    env: node
+    rootDir: apps/bot
+    buildCommand: npm install
+    startCommand: node src/bot.js
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+      - key: API_URL
+        fromService:
+          name: shop-api
+          type: web
+          property: host
+      - key: WEBAPP_URL
+        sync: false
+
+databases:
+  - name: shop-db
+    databaseName: shop_db
+    user: shop_user
+    plan: free
