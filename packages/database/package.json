@@ -1,0 +1,14 @@
+{
+  "name": "@shop/database",
+  "version": "1.0.0",
+  "scripts": {
+    "migrate": "knex migrate:latest --knexfile knexfile.js",
+    "migrate:rollback": "knex migrate:rollback --knexfile knexfile.js",
+    "seed": "knex seed:run --knexfile knexfile.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "knex": "^3.1.0",
+    "pg": "^8.11.3"
+  }
+}
