@@ -1,0 +1,21 @@
+{
+  "name": "shop-management-system",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:api": "yarn workspace @shop/api dev",
+    "dev:web": "yarn workspace @shop/web dev",
+    "dev:bot": "yarn workspace @shop/bot dev",
+    "build:api": "yarn workspace @shop/api build",
+    "build:web": "yarn workspace @shop/web build",
+    "migrate": "yarn workspace @shop/database migrate",
+    "seed": "yarn workspace @shop/database seed"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
