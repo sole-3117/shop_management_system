@@ -3,10 +3,10 @@ import api from '../../services/api';
 
 export const login = createAsyncThunk('auth/login', async (credentials, { rejectWithValue }) => {
   try {
-    const response = await api.post('/auth/login', credentials);
+    const response = await api.post('/super-admin/login', credentials);
     const { user, accessToken, refreshToken } = response.data.data;
     localStorage.setItem('accessToken', accessToken);
-    localStorage.setItem('refreshToken', refreshToken);
+    if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
     return user;
   } catch (err) {
     return rejectWithValue(err.response?.data?.message || 'Xatolik');
