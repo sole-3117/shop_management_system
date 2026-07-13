@@ -3,6 +3,8 @@ const router = express.Router();
 const c = require('./superadmin.controller');
 const { authenticate, authorize } = require('../../middleware/auth');
 
+router.post('/login', c.login.bind(c));
+
 router.use(authenticate, authorize('super_admin'));
 router.get('/clients', c.getClients.bind(c));
 router.post('/clients', c.createClient.bind(c));
