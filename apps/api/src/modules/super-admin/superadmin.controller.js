@@ -2,6 +2,14 @@ const superAdminService = require('./superadmin.service');
 const { success } = require('../../utils/response');
 
 class SuperAdminController {
+  async login(req, res, next) {
+    try {
+      const { email, password } = req.body;
+      const result = await superAdminService.login(email, password);
+      return success(res, result, 'Muvaffaqiyatli kirdingiz');
+    } catch (err) { next(err); }
+  }
+
   async getClients(req, res, next) {
     try {
       const clients = await superAdminService.getClients();
