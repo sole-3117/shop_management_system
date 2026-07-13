@@ -1,8 +1,27 @@
 const db = require('../../config/database');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const jwtConfig = require('../../config/jwt');
 const { v4: uuidv4 } = require('uuid');
 
 class SuperAdminService {
+  async login(email, password) {
+    const admin = await db('public.super_admins').where({ email, is_active: true }).first();
+    if (!admin) throw { status: 401, message: 'Email yoki parol noto\'g\'ri' };
+
+    const isValid = await bcrypt.compare(password, admin.password_hash);
+    if (!isValid) throw { status: 401, message: 'Email yoki parol noto\'g\'ri' };
+
+    const accessToken = jwt.sign(
+      { userId: admin.id, email: admin.email, role: 'super_admin' },
+      jwtConfig.secret,
+      { expiresIn: jwtConfig.expiresIn }
+    );
+
+    const { password_hash, ...adminWithoutPassword } = admin;
+    return { user: adminWithoutPassword, accessToken };
+  }
+
   async getClients() {
     return db('public.clients').orderBy('created_at', 'desc');
   }
