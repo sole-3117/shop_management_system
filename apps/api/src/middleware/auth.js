@@ -12,7 +12,19 @@ const authenticate = async (req, res, next) => {
     const token = authHeader.split(' ')[1];
     const decoded = jwt.verify(token, jwtConfig.secret);
 
-    // User mavjudligini tekshir
+    if (decoded.role === 'super_admin') {
+      const admin = await db('public.super_admins')
+        .where({ id: decoded.userId, is_active: true })
+        .first();
+
+      if (!admin) {
+        return res.status(401).json({ success: false, message: 'Foydalanuvchi topilmadi' });
+      }
+
+      req.user = { ...admin, role: 'super_admin' };
+      return next();
+    }
+
     const user = await db('users')
       .withSchema(decoded.schema)
       .where({ id: decoded.userId, is_active: true })
