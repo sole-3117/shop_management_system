@@ -2,14 +2,11 @@ const db = require('../config/database');
 
 const resolveTenant = async (req, res, next) => {
   try {
-    const hostname = req.hostname;
-    const subdomain = hostname.split('.')[0];
+    const tenantId = req.headers['x-tenant-id'];
 
-    // Bot uchun header orqali
-    const tenantId = req.headers['x-tenant-id'] || subdomain;
-
-    if (!tenantId || tenantId === 'api' || tenantId === 'localhost') {
-      return next(); // Super admin yoki direct API
+    // Header bo'lmasa — bu super-admin yoki tenant-mustaqil so'rov
+    if (!tenantId) {
+      return next();
     }
 
     const client = await db('public.clients').where({ slug: tenantId, is_active: true }).first();
