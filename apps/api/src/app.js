@@ -33,7 +33,7 @@ app.use(cors({
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 1000,
   message: { success: false, message: 'Juda ko\'p so\'rov. 15 daqiqadan keyin urinib ko\'ring.' },
 });
 app.use('/api/', limiter);
