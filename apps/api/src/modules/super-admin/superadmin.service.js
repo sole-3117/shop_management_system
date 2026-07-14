@@ -6,20 +6,11 @@ const { v4: uuidv4 } = require('uuid');
 
 class SuperAdminService {
   async login(email, password) {
-    const admin = await db('public.super_admins').where({ email }).first();
-
-    if (!admin) {
-      throw { status: 401, message: `DEBUG: admin topilmadi, email=${email}` };
-    }
-
-    if (!admin.is_active) {
-      throw { status: 401, message: 'DEBUG: admin is_active=false' };
-    }
+    const admin = await db('public.super_admins').where({ email, is_active: true }).first();
+    if (!admin) throw { status: 401, message: 'Email yoki parol noto\'g\'ri' };
 
     const isValid = await bcrypt.compare(password, admin.password_hash);
-    if (!isValid) {
-      throw { status: 401, message: `DEBUG: parol mos kelmadi. hash_boshi=${admin.password_hash.substring(0, 10)}` };
-    }
+    if (!isValid) throw { status: 401, message: 'Email yoki parol noto\'g\'ri' };
 
     const accessToken = jwt.sign(
       { userId: admin.id, email: admin.email, role: 'super_admin' },
