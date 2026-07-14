@@ -46,18 +46,16 @@ class AnalyticsService {
     else if (period === '12months') dateFrom = new Date(now.getFullYear(), now.getMonth() - 11, 1);
     else dateFrom = new Date(now - 30 * 24 * 60 * 60 * 1000);
 
-    const groupBy = period === '12months' ? 
-      db.raw("TO_CHAR(created_at, 'YYYY-MM')") : 
-      db.raw("TO_CHAR(created_at, 'YYYY-MM-DD')");
+    const dateFormat = period === '12months' ? 'YYYY-MM' : 'YYYY-MM-DD';
 
     const data = await db('orders').withSchema(schema)
       .where('created_at', '>=', dateFrom)
-      .groupBy(groupBy)
       .select(
-        groupBy.as ? groupBy : db.raw("TO_CHAR(created_at, 'YYYY-MM-DD') as date"),
+        db.raw(`TO_CHAR(created_at, '${dateFormat}') as date`),
         db.raw('COUNT(*) as orders'),
         db.raw('COALESCE(SUM(total), 0) as revenue')
       )
+      .groupBy(db.raw(`TO_CHAR(created_at, '${dateFormat}')`))
       .orderBy('date');
 
     return data;
