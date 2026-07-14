@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const bcrypt = require('bcrypt');
 const db = require('../../config/database');
 
 router.post('/init-db', async (req, res) => {
@@ -20,6 +21,7 @@ router.post('/init-db', async (req, res) => {
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW()
     )`);
+
     await db.raw(`CREATE TABLE IF NOT EXISTS public.super_admins (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       name VARCHAR(255) NOT NULL,
@@ -28,10 +30,16 @@ router.post('/init-db', async (req, res) => {
       is_active BOOLEAN DEFAULT true,
       created_at TIMESTAMP DEFAULT NOW()
     )`);
-    await db.raw(`INSERT INTO public.super_admins (name, email, password_hash)
-      VALUES ('Super Admin', 'admin@shop.uz', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewYlW5xqZ0Kj8K2')
-      ON CONFLICT (email) DO NOTHING`);
-    return res.json({ success: true, message: 'Database tayyor!' });
+
+    const passwordHash = await bcrypt.hash('Admin123!', 12);
+
+    await db.raw(`
+      INSERT INTO public.super_admins (name, email, password_hash)
+      VALUES ('Super Admin', 'admin@shop.uz', ?)
+      ON CONFLICT (email) DO UPDATE SET password_hash = EXCLUDED.password_hash
+    `, [passwordHash]);
+
+    return res.json({ success: true, message: 'Database tayyor! Admin parol qayta o\'rnatildi.' });
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
   }
