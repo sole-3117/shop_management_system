@@ -6,11 +6,20 @@ const { v4: uuidv4 } = require('uuid');
 
 class SuperAdminService {
   async login(email, password) {
-    const admin = await db('public.super_admins').where({ email, is_active: true }).first();
-    if (!admin) throw { status: 401, message: 'Email yoki parol noto\'g\'ri' };
+    const admin = await db('public.super_admins').where({ email }).first();
+
+    if (!admin) {
+      throw { status: 401, message: `DEBUG: admin topilmadi, email=${email}` };
+    }
+
+    if (!admin.is_active) {
+      throw { status: 401, message: 'DEBUG: admin is_active=false' };
+    }
 
     const isValid = await bcrypt.compare(password, admin.password_hash);
-    if (!isValid) throw { status: 401, message: 'Email yoki parol noto\'g\'ri' };
+    if (!isValid) {
+      throw { status: 401, message: `DEBUG: parol mos kelmadi. hash_boshi=${admin.password_hash.substring(0, 10)}` };
+    }
 
     const accessToken = jwt.sign(
       { userId: admin.id, email: admin.email, role: 'super_admin' },
@@ -36,7 +45,6 @@ class SuperAdminService {
     const schema = `tenant_${clientId.replace(/-/g, '_')}`;
 
     await db.transaction(async (trx) => {
-      // Client yaratish
       await trx('public.clients').insert({
         id: clientId,
         name,
@@ -47,13 +55,10 @@ class SuperAdminService {
         created_at: new Date(),
       });
 
-      // Schema yaratish
       await trx.raw(`CREATE SCHEMA IF NOT EXISTS "${schema}"`);
 
-      // Tenant tablolarini yaratish
       await this._createTenantTables(trx, schema);
 
-      // Admin user yaratish
       const passwordHash = await bcrypt.hash(adminPassword, 12);
       await trx.raw(`
         INSERT INTO "${schema}".users (id, name, email, password_hash, role, is_active, created_at, updated_at)
@@ -65,7 +70,6 @@ class SuperAdminService {
   }
 
   async _createTenantTables(trx, schema) {
-    // Users
     await trx.raw(`
       CREATE TABLE IF NOT EXISTS "${schema}".users (
         id UUID PRIMARY KEY,
@@ -80,7 +84,6 @@ class SuperAdminService {
       )
     `);
 
-    // Refresh tokens
     await trx.raw(`
       CREATE TABLE IF NOT EXISTS "${schema}".refresh_tokens (
         id UUID PRIMARY KEY,
@@ -91,7 +94,6 @@ class SuperAdminService {
       )
     `);
 
-    // Categories
     await trx.raw(`
       CREATE TABLE IF NOT EXISTS "${schema}".categories (
         id UUID PRIMARY KEY,
@@ -104,7 +106,6 @@ class SuperAdminService {
       )
     `);
 
-    // Products
     await trx.raw(`
       CREATE TABLE IF NOT EXISTS "${schema}".products (
         id UUID PRIMARY KEY,
@@ -123,7 +124,6 @@ class SuperAdminService {
       )
     `);
 
-    // Customers
     await trx.raw(`
       CREATE TABLE IF NOT EXISTS "${schema}".customers (
         id UUID PRIMARY KEY,
@@ -141,7 +141,6 @@ class SuperAdminService {
       )
     `);
 
-    // Orders
     await trx.raw(`
       CREATE TABLE IF NOT EXISTS "${schema}".orders (
         id UUID PRIMARY KEY,
@@ -159,7 +158,6 @@ class SuperAdminService {
       )
     `);
 
-    // Order items
     await trx.raw(`
       CREATE TABLE IF NOT EXISTS "${schema}".order_items (
         id UUID PRIMARY KEY,
