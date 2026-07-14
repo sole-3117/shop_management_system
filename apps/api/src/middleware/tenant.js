@@ -16,7 +16,7 @@ const resolveTenant = async (req, res, next) => {
     }
 
     req.tenant = client;
-    req.schema = `tenant_${client.id}`;
+    req.schema = client.schema_name;
     next();
   } catch (error) {
     next(error);
