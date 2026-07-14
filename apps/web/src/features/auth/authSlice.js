@@ -1,12 +1,23 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '../../services/api';
 
-export const login = createAsyncThunk('auth/login', async (credentials, { rejectWithValue }) => {
+export const login = createAsyncThunk('auth/login', async ({ email, password, tenantSlug }, { rejectWithValue }) => {
   try {
-    const response = await api.post('/super-admin/login', credentials);
+    let response;
+    if (tenantSlug) {
+      response = await api.post('/auth/login', { email, password }, {
+        headers: { 'x-tenant-id': tenantSlug },
+      });
+    } else {
+      response = await api.post('/super-admin/login', { email, password });
+    }
+
     const { user, accessToken, refreshToken } = response.data.data;
     localStorage.setItem('accessToken', accessToken);
     if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
+    if (tenantSlug) localStorage.setItem('tenantSlug', tenantSlug);
+    else localStorage.removeItem('tenantSlug');
+
     return user;
   } catch (err) {
     return rejectWithValue(err.response?.data?.message || 'Xatolik');
@@ -31,6 +42,7 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
+      localStorage.removeItem('tenantSlug');
     },
     clearError: (state) => { state.error = null; },
   },
