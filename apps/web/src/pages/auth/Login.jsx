@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { login } from '../../features/auth/authSlice';
 
 export default function Login() {
-  const [form, setForm] = useState({ email: '', password: '' });
+  const [form, setForm] = useState({ email: '', password: '', tenantSlug: '' });
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { isLoading, error } = useSelector(s => s.auth);
@@ -30,6 +30,19 @@ export default function Login() {
               {error}
             </div>
           )}
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Do'kon kodi <span className="text-gray-400 font-normal">(bo'sh qoldirsangiz — Super Admin)</span>
+            </label>
+            <input
+              type="text"
+              className="input"
+              placeholder="masalan: mening-dokonim"
+              value={form.tenantSlug}
+              onChange={e => setForm({ ...form, tenantSlug: e.target.value.trim() })}
+            />
+          </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
