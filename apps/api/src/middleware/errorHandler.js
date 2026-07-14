@@ -15,10 +15,9 @@ const errorHandler = (err, req, res, next) => {
     return res.status(400).json({ success: false, message: 'Bog\'liq ma\'lumot topilmadi' });
   }
 
-  // VAQTINCHA: xato xabarini har doim ko'rsatish (debug uchun)
   res.status(err.status || 500).json({
     success: false,
-    message: err.message || 'Server xatosi',
+    message: process.env.NODE_ENV === 'production' ? 'Server xatosi' : err.message,
   });
 };
 
