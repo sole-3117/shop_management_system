@@ -63,7 +63,7 @@ class AnalyticsService {
 
   async getTopProducts(schema, limit = 10) {
     return db('order_items').withSchema(schema)
-      .join(`${schema}.products`, 'order_items.product_id', 'products.id')
+      .join(`products`, 'order_items.product_id', 'products.id')
       .groupBy('products.id', 'products.name')
       .select(
         'products.id',
@@ -77,7 +77,7 @@ class AnalyticsService {
 
   async getRecentOrders(schema, limit = 10) {
     return db('orders').withSchema(schema)
-      .leftJoin(`${schema}.customers`, 'orders.customer_id', 'customers.id')
+      .leftJoin(`customers`, 'orders.customer_id', 'customers.id')
       .select('orders.*', 'customers.name as customer_name')
       .orderBy('orders.created_at', 'desc')
       .limit(limit);
